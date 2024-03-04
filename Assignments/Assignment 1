@@ -1,1 +1,81 @@
+enterref	EQU 0x50	    ; user generated refTemp
+entermeas	EQU 0x50	    ; user generated measTemp
+refTemp		EQU 0x20	    ; refTemp REG 0x20
+measuredTemp	EQU 0x21	    ; measuredTemp REG 0x21
+contReg		EQU 0x22	    ; contReg REG 0x22
+refTempL	EQU 0X23	    ; LOW LIMIT
+refTempH	EQU 0X24	    ; HIGH LIMIT
+measuredTempL	EQU 0X25
+measuredTempH	EQU 0X26
+
+	
+	ORG 0X20
+		
+	MOVLW   0X00
+	MOVWF   TRISD
+	MOVLW	0X0A
+	MOVWF	refTempL, 1
+	MOVLW	0x32
+	MOVWF	refTempH, 1	    ; 10C < RefTemp < 50C
+	MOVLW	0x14
+	NEGF	WREG
+	MOVWF	measuredTempL, 1
+	MOVLW	0x3C
+	MOVWF	measuredTempH, 1    ; -20C < MeasTemp < 60C
+	MOVLW	enterref	    ; Reference Temperature   
+	MOVWF	refTemp, 1
+	MOVLW	entermeas	    ; Measure Ambient Temperature
+	MOVWF	measuredTemp, 1
+	
+    ; Convert RefTemp to dec (REG 60,61,62)
+	MOVFF   refTemp, WREG
+    
+    ; Convert MeasTemp to dec (REG 70,71,72)
+	MOVFF	measuredTemp, WREG
+	
+    ; Compare RefTemp vs MeasTemp
+	MOVFF	refTemp, WREG	    ; Test if refTemp is in range
+	CPFSLT	refTempL, 0
+	SLEEP
+	GOTO	RHIGH
+RHIGH	CPFSGT	refTempH, 0
+	SLEEP
+	GOTO	MEAS
+MEAS	MOVFF	measuredTemp, WREG  ; Test if measuredTemp is in range
+	CPFSLT	measuredTempL, 0
+	SLEEP
+	GOTO	MHIGH
+MHIGH	CPFSGT	measuredTempH, 0
+	SLEEP
+	GOTO	START
+START	MOVFF   measuredTemp, WREG  ; Test which system to run
+	CPFSEQ  refTemp, 0
+	GOTO    NEXT
+	CALL    GOOD
+NEXT    CPFSGT  refTemp, 0
+	GOTO	NEXT2
+	CALL    COOL
+NEXT2	CPFSLT  refTemp, 0
+	GOTO	DONE
+	CALL    HOT
+DONE	SLEEP
+	
+	; RefTemp > MeasTemp = HOT LED
+HOT	MOVLW	1H
+	MOVWF	contReg, 1
+	MOVWF	PORTD, 1
+	GOTO	DONE
+	; RefTemp < MeasTemp = COOL LED
+COOL	MOVLW	1H
+	MOVWF	contReg, 1
+	INCFSZ	contReg, 0
+	MOVWF	PORTD, 1
+	GOTO	DONE
+	; RefTemp = MeasTemp = NOP
+GOOD	MOVLW	1H
+	MOVWF	contReg, 1
+	DECFSZ	contReg, 1
+	NOP
+	GOTO	DONE
+	
 
