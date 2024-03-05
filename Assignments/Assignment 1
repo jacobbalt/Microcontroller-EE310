@@ -2,18 +2,23 @@
 ; Title: ASSIGNMENT 4
 ;---------------------
 ;Program Details:
-; THIS PROJECT DEVELOPS A HEATING AND COOLING CONTROL SYSTEM WITH THE USER
+; 
+;-------	
+; Purpose: THIS PROJECT DEVELOPS A HEATING AND COOLING CONTROL SYSTEM WITH THE USER
 ; SETTING THE DESIRED TEMPERATURE AND TESTING IT AGAINST THE AMBIENT TEMPERATURE
 ; SO THE SYSTEM CAN DECIDE TO HEAT OR COOL.
-;-------	
-; Inputs: enterref, entermeas
-; Outputs: PORTD1, PORTD2
-; Date: MARCH 3, 2024
 ; File Dependencies / Libraries: None 
 ; Compiler: ASM 2.4
 ; Author: JACOB BALTIERREZ
+; Outputs: PORTD1, PORTD2
+; Inputs: enterref, entermeas
+; Date: MARCH 3, 2024
 ; Versions:
-;       V1.0: Original Program (Progress 1)
+;       V1.0: 3/3/2024 - First Version
+;	V2.0: 3/4/2024 - Second Version, 
+;	     changes: compare branch removed multi sleep, convert hex to dec,
+;		    bra instead goto for compare short jumps, add return, 
+;		    hot/cold bsf instead movwf 
 ; Useful links: 
 ;       Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/PIC18(L)F26-27-45-46-47-55-56-57K42-Data-Sheet-40001919G.pdf 
 ;       PIC18F Instruction Sets: https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781119448457.app4 
@@ -26,8 +31,8 @@
 #include <xc.inc>
 
 
-enterref	EQU 0x50	    ; user generated refTemp
-entermeas	EQU 0x50	    ; user generated measTemp
+enterref	EQU d'50'	    ; user generated refTemp
+entermeas	EQU d'50'	    ; user generated measTemp
 refTemp		EQU 0x20	    ; refTemp REG 0x20
 measuredTemp	EQU 0x21	    ; measuredTemp REG 0x21
 contReg		EQU 0x22	    ; contReg REG 0x22
@@ -35,75 +40,125 @@ refTempL	EQU 0X23	    ; LOW LIMIT
 refTempH	EQU 0X24	    ; HIGH LIMIT
 measuredTempL	EQU 0X25
 measuredTempH	EQU 0X26
+num		EQU 0x27
+quot		EQU 0x28
+RremL		EQU 0x60
+RremM		EQU 0x61
+RremH		EQU 0x62
+MremL		EQU 0x70
+MremM		EQU 0x71
+MremH		EQU 0x72
+div10		EQU d'10'
 
 	
 	ORG 0X20
 		
 	MOVLW   0X00
-	MOVWF   TRISD
-	MOVLW	0X0A
+	MOVWF   TRISD		    ; PORTD output port
+	MOVLW	d'10'
 	MOVWF	refTempL, 1
-	MOVLW	0x32
-	MOVWF	refTempH, 1	    ; 10C < RefTemp < 50C
-	MOVLW	0x14
+	MOVLW	d'50'
+	MOVWF	refTempH, 1	    ; 10degC < RefTemp < 50degC
+	MOVLW	d'20'
 	NEGF	WREG
 	MOVWF	measuredTempL, 1
-	MOVLW	0x3C
-	MOVWF	measuredTempH, 1    ; -20C < MeasTemp < 60C
+	MOVLW	d'60'
+	MOVWF	measuredTempH, 1    ; -20degC < MeasTemp < 60degC
 	MOVLW	enterref	    ; Reference Temperature   
 	MOVWF	refTemp, 1
 	MOVLW	entermeas	    ; Measure Ambient Temperature
 	MOVWF	measuredTemp, 1
 	
-    ; Convert RefTemp to dec (REG 60,61,62)
-	MOVFF   refTemp, WREG
+    ; Convert RefTemp hex to dec (REG 60,61,62)
+	MOVLW   refTemp		    ; WREG = refTemp
+	MOVWF	num		    ; load numerator
+	MOVLW	div10		    ; denomonator
+	CLRF	quot, 1		    ; clear quotient
+	INCF	quot, 1		    ; increment quotient for every sub
+subL	SUBWF	num		    ; refTemp - 10 
+	BC	subL		    ; if positive loop back
+	ADDWF	num		    ; counted final loop
+	DECF	quot, 1		    ; counted final loop
+	MOVFF	num, RremL	    ; save first digit
+	MOVFF	quot, num	    ; repeat again
+	CLRF	quot
+subH	INCF	quot, 1
+	SUBWF	num
+	BC	subH
+	ADDWF	num
+	DECF	quot, 1
+	MOVFF	num, RremM	    ; save 2nd digit
+	MOVFF	quot, RremH	    ; save 3rd digit
+	GOTO	MH2D
+	
+	
     
-    ; Convert MeasTemp to dec (REG 70,71,72)
-	MOVFF	measuredTemp, WREG
+    ; Convert MeasTemp hex to dec (REG 70,71,72)
+MH2D	MOVWF	num
+	MOVLW	div10
+	CLRF	quot, 1
+	INCF	quot, 1
+sbL2	SUBWF	num
+	BC	sbL2
+	ADDWF	num
+	DECF	quot, 1
+	MOVFF	num, MremL
+	MOVFF	quot, num
+	CLRF	quot
+sbH2	INCF	quot, 1
+	SUBWF	num
+	BC	sbH2
+	ADDWF	num
+	DECF	quot, 1
+	MOVFF	num, MremM
+	MOVFF	quot, MremH
+	GOTO	COMP
 	
     ; Compare RefTemp vs MeasTemp
-	MOVFF	refTemp, WREG	    ; Test if refTemp is in range
+COMP	MOVFF	refTemp, WREG	    ; Test if refTemp is in range
 	CPFSLT	refTempL, 0
-	SLEEP
-	GOTO	RHIGH
+	BRA	RHIGH
+	GOTO	DONE
 RHIGH	CPFSGT	refTempH, 0
-	SLEEP
-	GOTO	MEAS
+	BRA	MEAS
+	GOTO	DONE
 MEAS	MOVFF	measuredTemp, WREG  ; Test if measuredTemp is in range
 	CPFSLT	measuredTempL, 0
-	SLEEP
-	GOTO	MHIGH
-MHIGH	CPFSGT	measuredTempH, 0
-	SLEEP
-	GOTO	START
-START	MOVFF   measuredTemp, WREG  ; Test which system to run
-	CPFSEQ  refTemp, 0
-	GOTO    NEXT
-	CALL    GOOD
-NEXT    CPFSGT  refTemp, 0
-	GOTO	NEXT2
-	CALL    COOL
-NEXT2	CPFSLT  refTemp, 0
+	BRA	MHIGH
 	GOTO	DONE
+MHIGH	CPFSGT	measuredTempH, 0
+	BRA	START
+	GOTO	DONE
+START	MOVFF   measuredTemp, WREG  ; Test which system to run
+	CPFSEQ  refTemp, 0	    ;Compare =
+	BRA	NEXT
+	CALL    GOOD
+NEXT    CPFSGT  refTemp, 0	    ; Compare >
+	BRA	NEXT2
+	CALL    COOL
+NEXT2	CPFSLT  refTemp, 0	    ; Compare <
+	BRA	DONE
 	CALL    HOT
 DONE	SLEEP
 	
 	; RefTemp > MeasTemp = HOT LED
 HOT	MOVLW	1H
 	MOVWF	contReg, 1
-	MOVWF	PORTD, 1
-	GOTO	DONE
+	BSF	PORTD, 1	    ; Turn on PortD1
+	RETURN
 	; RefTemp < MeasTemp = COOL LED
 COOL	MOVLW	1H
 	MOVWF	contReg, 1
-	INCFSZ	contReg, 0
-	MOVWF	PORTD, 1
-	GOTO	DONE
+	INCFSZ	contReg, 1
+	BSF	PORTD, 2	    ; Turn on PortD2
+	RETURN
 	; RefTemp = MeasTemp = NOP
 GOOD	MOVLW	1H
 	MOVWF	contReg, 1
 	DECFSZ	contReg, 1
 	NOP
-	GOTO	DONE
+	RETURN
+	
+
 	
 
