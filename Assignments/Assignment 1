@@ -18,7 +18,8 @@
 ;       V1.0: 3/3/2024 - First Version
 ;	V2.0: 3/4/2024 - Second Version
 ;	V3.0: 3/5/2024 - Third Version
-;	     changes: new variable format, loop format, syntax errors, complete
+;	V4.0: 3/6/2024 - Fourth Version
+;	     changes: updated comments, new variable format
 ;
 ;---------------------
 ; Initialization
@@ -27,27 +28,36 @@
 #include <xc.inc>
 
 ; Variables
-#define		enterref	21	    ; user generated refTemp
-#define		entermeas	25	    ; user generated measTemp
+
+; Inputs
+;-----------------
+#define		enterref	15	    ; user generated refTemp
+#define		entermeas	0	    ; user generated measTemp
 #define		refTempL	10
 #define		refTempH	50	    ; 10degC < RefTemp < 50degC
-#define		measuredTempL	20
+#define		measuredTempL	0
 #define		measuredTempH	60	    ; 20degC < MeasTemp < 60degC
+
+;Registers
+;------------------
 refTemp		EQU 0x20		    ; refTemp REG 0x20
 measuredTemp	EQU 0x21		    ; measuredTemp REG 0x21
-contReg		EQU 0x22		    ; contReg REG 0x22
 num		EQU 0x27
 quot		EQU 0x28
-RremL		EQU 0x60
+div10		EQU 0x0A
+
+; Outputs
+;--------------------
+contReg		EQU 0x22		    ; contReg REG 0x22
+RremL		EQU 0x60		    ; Ref low bit
 RremM		EQU 0x61
-RremH		EQU 0x62
+RremH		EQU 0x62		    ; Ref high bit
 MremL		EQU 0x70
 MremM		EQU 0x71
 MremH		EQU 0x72
-div10		EQU 0x0A
-
 
 ; Main Program
+;----------------------
 		
 PSECT absdata,abs,ovrld     ; Do not change
 
@@ -57,8 +67,6 @@ PSECT absdata,abs,ovrld     ; Do not change
 	MOVWF   TRISD, 1	    ; PORTD output port
 	MOVLW	enterref	    ; Reference Temperature   
 	MOVWF	refTemp, 1
-	MOVLW	entermeas	    ; Measure Ambient Temperature
-	MOVWF	measuredTemp, 1
 	
     ; Convert RefTemp hex to dec (REG 60,61,62)
 	MOVLW   enterref		    ; WREG = refTemp
@@ -83,7 +91,11 @@ subH:
 	MOVFF	num, RremM	    ; save 2nd digit
 	MOVFF	quot, RremH	    ; save 3rd digit
 	
-        ; Convert MeasTemp hex to dec (REG 70,71,72)
+        
+	MOVLW	entermeas	    ; Measure Ambient Temperature
+	MOVWF	measuredTemp, 1
+	
+	; Convert MeasTemp hex to dec (REG 70,71,72)
 	MOVLW	entermeas
 	MOVWF	num
 	MOVLW	div10
@@ -110,7 +122,7 @@ sbH2:
     ; Compare RefTemp vs MeasTemp
 COMP:
 	CLRF	PORTD, 0
-	MOVLW	refTempL		    ; Test if refTemp is in range
+	MOVLW	refTempL	    ; Test if refTemp is in range
 	CPFSLT	refTemp, 0
 	BRA	RHIGH
 	GOTO	FIN
@@ -140,16 +152,16 @@ NXT:
 	CPFSGT  refTemp, 0	    ; Compare >
 	BRA	NXT2
 	CALL    HOT		    ; Too Cool
-	; BRA	NXT2
 NXT2:
 	MOVLW	entermeas
 	CPFSEQ  refTemp, 0	    ;Compare =
 	BRA	FIN
 	CALL    GOOD
-	;BRA	FIN
 FIN:
 	GOTO	FIN
 	
+; Subroutine
+;-------------------
 	; RefTemp > MeasTemp = HOT LED
 COOL:
 	MOVLW	0x01
