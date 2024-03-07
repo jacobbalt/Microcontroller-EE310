@@ -19,7 +19,8 @@
 ;	V2.0: 3/4/2024 - Second Version
 ;	V3.0: 3/5/2024 - Third Version
 ;	V4.0: 3/6/2024 - Fourth Version
-;	     changes: updated comments, new variable format
+;	V5.0: 3/6/2024 - Fith Version
+;	     changes: added LATD register output and made program work correctly
 ;
 ;---------------------
 ; Initialization
@@ -31,8 +32,8 @@
 
 ; Inputs
 ;-----------------
-#define		enterref	15	    ; user generated refTemp
-#define		entermeas	0	    ; user generated measTemp
+#define		enterref	25	    ; user generated refTemp
+#define		entermeas	15	    ; user generated measTemp
 #define		refTempL	10
 #define		refTempH	50	    ; 10degC < RefTemp < 50degC
 #define		measuredTempL	0
@@ -64,9 +65,18 @@ PSECT absdata,abs,ovrld     ; Do not change
 	ORG 0X20
 		
 	MOVLW   0X00
-	MOVWF   TRISD, 1	    ; PORTD output port
+	;MOVWF	TRISD, 0
+;	BANKSEL	PORTD
+;	CLRF	PORTD
+;	BANKSEL	LATD
+;	CLRF	LATD
+;	BANKSEL	ANSELD
+;	CLRF	ANSELD
+;	BANKSEL	TRISD
+;	MOVLW	0b11111001	    ; PORTD1 output port
+;	MOVWF	TRISD		    ; PORTD2 output port
 	MOVLW	enterref	    ; Reference Temperature   
-	MOVWF	refTemp, 1
+	MOVWF	refTemp
 	
     ; Convert RefTemp hex to dec (REG 60,61,62)
 	MOVLW   enterref		    ; WREG = refTemp
@@ -93,14 +103,13 @@ subH:
 	
         
 	MOVLW	entermeas	    ; Measure Ambient Temperature
-	MOVWF	measuredTemp, 1
+	MOVWF	measuredTemp
 	
 	; Convert MeasTemp hex to dec (REG 70,71,72)
 	MOVLW	entermeas
 	MOVWF	num
 	MOVLW	div10
 	CLRF	quot, 1
-	; BRA	subL
 sbL2:
 	INCF	quot, 1
 	SUBWF	num
@@ -146,7 +155,6 @@ START:
 	CPFSLT  refTemp, 0	    ; Compare <
 	BRA	NXT
 	CALL    COOL		    ; Too Hot
-	; BRA	NXT
 NXT:
 	MOVLW	entermeas
 	CPFSGT  refTemp, 0	    ; Compare >
@@ -162,29 +170,31 @@ FIN:
 	
 ; Subroutine
 ;-------------------
-	; RefTemp > MeasTemp = HOT LED
+	; RefTemp < MeasTemp = COOL LED
 COOL:
 	MOVLW	0x01
-	MOVWF	contReg, 1
+	MOVWF	contReg
+	MOVFF	contReg, LATD
 	BSF	PORTD, 1	    ; Turn on PortD1
 	RETURN
 	
-	; RefTemp < MeasTemp = COOL LED
+	; RefTemp > MeasTemp = HOT LED
 HOT:
 	MOVLW	0x01
-	MOVWF	contReg, 1
-	INCFSZ	contReg, F
+	MOVWF	contReg
+	INCFSZ	contReg, 1
+	MOVFF	contReg, LATD
 	BSF	PORTD, 2	    ; Turn on PortD2
 	RETURN
 	
 	; RefTemp = MeasTemp = NOP
 GOOD:
 	MOVLW	0x01
-	MOVWF	contReg, 1
+	MOVWF	contReg, 0
 	DECFSZ	contReg, 1
+	MOVFF	contReg, LATD
 	NOP
 	RETURN
 END
 	
 	
-
