@@ -16,7 +16,8 @@
 ; Inputs: PORTB0, PORTB1,
 ; Date: MARCH 24, 2024
 ; Versions:
-;       V1.0: 3/24/2024 - First Version: Create initial program
+;       V1.0: 3/24/2024
+;	V2.0: 3/26/2024: Fixed Delay and completed assignment
 ;
 ;---------------------
 ; Initialization
@@ -99,7 +100,7 @@ OUTPORTD: ; INITIALIZE OUTPUT PORT D
     CLRF	ANSELD ;digital I/O
     BANKSEL	TRISD ;
     MOVLW	0b00000000 ;Set RD[7:1] as outputs
-    MOVWF	TRISD ;and set RD0 as ouput
+    MOVWF	TRISD ;and set RD0-7 as ouput
     RETURN
     
 INIT:
@@ -138,8 +139,9 @@ INIT:
     RETURN
     
 INCY:
-    MOVLW	PORTD
-    BNZ		DISP
+    ;MOVLW	PORTD
+    TSTFSZ	PORTD
+    BRA		DISP
     LFSR	1, 0X30
 DISP:
     MOVF	POSTINC1, W
@@ -147,8 +149,9 @@ DISP:
     RETURN
     
 DECY:
-    MOVLW	PORTD
-    BNZ		DISP2
+    ;MOVLW	PORTD
+    TSTFSZ	PORTD
+    BRA		DISP2
     LFSR	1, 0X3F
 DISP2:    
     MOVF	POSTDEC1, W
@@ -158,20 +161,23 @@ DISP2:
 RESETY:
     MOVLW	0XBF
     MOVWF	PORTD
-    CALL	DELAY
     RETURN
 
 DELAY: ; DELAY
-    MOVLW	2
+    MOVLW	0xFF
     MOVWF	0X22
-BACK:
-    MOVLW	2
+    MOVLW	0xFF
     MOVWF	0X21
 HERE:
     NOP
     NOP
-    DECF	0X21, F
+    DECF	0X21, 1
     BNZ		HERE
-    DECF	0X22, F
-    BNZ		BACK
+    MOVLW	0xFF
+    MOVWF	0x21
+    DECF	0X22, 1
+    BNZ		HERE
     RETURN
+    
+    END
+    
