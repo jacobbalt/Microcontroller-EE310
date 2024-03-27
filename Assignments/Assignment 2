@@ -1,1 +1,177 @@
+;---------------------
+; Title: ASSIGNMENT 4
+;---------------------
+;Program Details: This program increments from 0-F and decrements F-0 with the
+;		    push and hold of a button and displays on a 7 segment output
+;
+;-------	
+; Purpose: To develop a counter using input and output ports and display the 
+;	    output on a 7 segment device using push button inputs to change the
+;	    display to increment or decrement the count.
+;
+; File Dependencies / Libraries: None 
+; Compiler: ASM 2.4
+; Author: JACOB BALTIERREZ
+; Outputs: PORTD0, PORTD1, PORTD2, PORTD3, PORTD4, PORTD5, PORTD6,PORTD7
+; Inputs: PORTB0, PORTB1,
+; Date: MARCH 24, 2024
+; Versions:
+;       V1.0: 3/24/2024 - First Version: Create initial program
+;
+;---------------------
+; Initialization
+;---------------------
+#include "/Users/jakebaltierrez/MPLABXProjects/EE310A6B7Seg.X/AssemblyConfig.inc"
+#include <xc.inc>
 
+; Variables
+;------------------
+
+; Inputs
+;-----------------
+R0	EQU	0X30
+R1	EQU	0X31
+R2	EQU	0X32
+R3	EQU	0X33
+R4	EQU	0X34
+R5	EQU	0X35
+R6	EQU	0X36
+R7	EQU	0X37
+R8	EQU	0X38
+R9	EQU	0X39
+RA	EQU	0X3A
+RB	EQU	0X3B
+RC	EQU	0X3C
+RDD	EQU	0X3D
+RE	EQU	0X3E
+RF	EQU	0X3F
+    
+;---------------------
+; Main Program
+;---------------------
+    PSECT absdata,abs,ovrld        ; Do not change
+    
+    ORG 0X10
+    
+    CALL	INPORTB
+    CALL	OUTPORTD
+    CALL	INIT
+TOP:
+    BTFSC	PORTB, 0
+    BRA		EQUAL
+    BTFSC	PORTB, 1
+    BRA		EQUAL
+    GOTO	TOP
+EQUAL:    
+    MOVLW	3
+    CPFSEQ	PORTB
+    BRA		NXT
+    CALL	RESETY
+NXT:
+    BTFSS	PORTB, 0
+    CALL	INCY
+    BTFSS	PORTB, 1
+    CALL	DECY
+    CALL	DELAY
+    GOTO	TOP
+    
+; CALL FUNCTIONS
+;------------------------
+
+INPORTB: ;INITIALIZE INPUT PORT B
+    BANKSEL	PORTB ;
+    CLRF	PORTB ;Init PORTB
+    BANKSEL	LATB ;Data Latch
+    CLRF	LATB ;
+    BANKSEL	ANSELB ;
+    CLRF	ANSELB ;digital I/O
+    BANKSEL	TRISB ;
+    MOVLW	0b00000011 ;
+    MOVWF	TRISB ;
+    RETURN
+
+OUTPORTD: ; INITIALIZE OUTPUT PORT D
+    BANKSEL	PORTD ;
+    CLRF	PORTD ;Init PORTA
+    BANKSEL	LATD ;Data Latch
+    CLRF	LATD ;
+    BANKSEL	ANSELD ;
+    CLRF	ANSELD ;digital I/O
+    BANKSEL	TRISD ;
+    MOVLW	0b00000000 ;Set RD[7:1] as outputs
+    MOVWF	TRISD ;and set RD0 as ouput
+    RETURN
+    
+INIT:
+    MOVLW	0X3F	; 0
+    MOVWF	R0
+    MOVLW	0X06	; 1
+    MOVWF	R1
+    MOVLW	0X5B	; 2
+    MOVWF	R2
+    MOVLW	0X4F	; 3
+    MOVWF	R3
+    MOVLW	0X66	; 4
+    MOVWF	R4
+    MOVLW	0X6D	; 5
+    MOVWF	R5
+    MOVLW	0X7D	; 6
+    MOVWF	R6
+    MOVLW	0X07	; 7
+    MOVWF	R7
+    MOVLW	0X7F	; 8
+    MOVWF	R8
+    MOVLW	0X67	; 9
+    MOVWF	R9
+    MOVLW	0X77	; A
+    MOVWF	RA
+    MOVLW	0X7F	; B
+    MOVWF	RB
+    MOVLW	0X39	; C
+    MOVWF	RC
+    MOVLW	0X3F	; D
+    MOVWF	RDD
+    MOVLW	0X79	; E
+    MOVWF	RE
+    MOVLW	0X71	; F
+    MOVWF	RF
+    RETURN
+    
+INCY:
+    MOVLW	PORTD
+    BNZ		DISP
+    LFSR	1, 0X30
+DISP:
+    MOVF	POSTINC1, W
+    MOVWF	PORTD
+    RETURN
+    
+DECY:
+    MOVLW	PORTD
+    BNZ		DISP2
+    LFSR	1, 0X3F
+DISP2:    
+    MOVF	POSTDEC1, W
+    MOVWF	PORTD
+    RETURN
+    
+RESETY:
+    MOVLW	0XBF
+    MOVWF	PORTD
+    CALL	DELAY
+    RETURN
+
+DELAY: ; DELAY
+    MOVLW	2
+    MOVWF	0X22
+BACK:
+    MOVLW	2
+    MOVWF	0X21
+HERE:
+    NOP
+    NOP
+    DECF	0X21, F
+    BNZ		HERE
+    DECF	0X22, F
+    BNZ		BACK
+    RETURN
