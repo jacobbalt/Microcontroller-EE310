@@ -27,28 +27,32 @@
 //#include "C:\Program Files\Microchip\xc8\v2.40\pic\include\proc\pic18f46k42"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
 int X_Int_Reg;
 int Y_Int_Reg;
 int number;
-char operator;
+char Operation_Reg;
+char start;
 
 void initialize (void){
     PORTB = 0x00;
-    LATB = 0xF0;
-    ANSELB = 0x0F;
-    TRISB = 0x0F;
+    LATB = 0x00;
+    ANSELB = 0b00000000;
+    TRISB = 0b00001111;
     
-    PORTD = 0x00;
-    LATD = 0x00;
-    ANSELD = 0x00;
-    TRISD = 0x00;
+    PORTD = 0b00000000;
+    LATD = 0b00000000;
+    ANSELD = 0b00000000;
+    TRISD = 0b00000000;
 }
 
 int keyboard (int number){
+    initialize();
     while(1){
-        while(PORTBbits.RB0==1){
-            _delay(100);
+        while(PORTBbits.RB0 == 1){
+            _delay(200);
             if(PORTBbits.RB4==1)
                 number = 1;
             else if(PORTBbits.RB5==1)
@@ -56,10 +60,10 @@ int keyboard (int number){
             else if(PORTBbits.RB6==1)
                 number = 3;
             else if(PORTBbits.RB7==1)
-                operator = '+';
+                Operation_Reg = '+';
         }
-        while(PORTBbits.RB1==1){
-            _delay(100);
+        while(PORTBbits.RB1 == 0010){
+            _delay(200);
             if(PORTBbits.RB4==1)
                 number = 4;
             else if(PORTBbits.RB5==1)
@@ -67,10 +71,10 @@ int keyboard (int number){
             else if(PORTBbits.RB6==1)
                 number = 6;
             else if(PORTBbits.RB7==1)
-                operator = '-';
+                Operation_Reg = '-';
         }
         while(PORTBbits.RB2==1){
-            _delay(100);
+            _delay(200);
             if(PORTBbits.RB4==1)
                 number = 7;
             else if(PORTBbits.RB5==1)
@@ -78,27 +82,69 @@ int keyboard (int number){
             else if(PORTBbits.RB6==1)
                 number = 9;
             else if(PORTBbits.RB7==1)
-                operator = '*';
+                Operation_Reg = '*';
         }
         while(PORTBbits.RB3==1){
+            _delay(200);
             if(PORTBbits.RB4==1)
-                operator = 'n';
+                Operation_Reg = 'n';
             else if(PORTBbits.RB5==1)
                 number = 0;
             else if(PORTBbits.RB6==1)
-                operator = 'X';
+                start = '\n';
             else if(PORTBbits.RB7==1)
-                operator = '/';
+                Operation_Reg = '/';
         }
     }
 }
-int main (signed int num){
+void main (signed int num){
     initialize();
-    int number[2], X_Input_Reg, Y_Input_Reg, num;
-    char operator;
-    X_Input_Reg = atoi(keyboard(number)); 
-    operator = getchar("%1c",keyboard(operator));
-    Y_Int_Reg = atoi(keyboard(number));
+    int number, X_Input_Reg, Y_Input_Reg;
+    int Display_Result_Reg[8], binary[8];
+    char Operation_Reg[1];
+    keyboard(number);          //atoi = anything to integer
+    X_Input_Reg = atoi(number);
+    PORTDbits.RD0 = 1;
+    keyboard(Operation_Reg); //get operator from input
+    //Operation_Reg = getchar(Operation_Reg); //get operator from input
+    keyboard(number);
+    Y_Int_Reg = atoi(number);
+    PORTDbits.RD0 = 0;
+    PORTDbits.RD1 = 1;
+    keyboard(start);
+    //getchar(start);
+    if(start == '\n')
+        PORTDbits.RD1 = 0;
+        num = action();              //calls function to calculate
+    dec2bin(num);
+    //LATD = Display_Result_Reg;                  //outputs to PORTD in binary
+    LATD = binary[8];
+}
+
+signed int action(signed int num){
+    int X_Input_Reg, Y_Input_Reg;
+    if(Operation_Reg == '+')
+        num = X_Input_Reg + Y_Input_Reg;
+    else if(Operation_Reg == '-')
+        num = X_Input_Reg + Y_Input_Reg;
+    else if(Operation_Reg == '*')
+        num = X_Input_Reg * Y_Input_Reg;
+    else if(Operation_Reg == '/')
+        num = X_Input_Reg / Y_Input_Reg;
+    while(num < 0){
+            num = ~num + 1;
+    }
+}
+signed int dec2bin(signed int num){
+    int binary[8];
+    int Display_Result_Reg[8];
+    int i = 0;
+    while(num > 0){
+        binary[i] = num % 2;
+        num = num / 2;
+        i++;
+    }
+        //Display_Result_Reg = binary;
 }
 //void SerTX(unsigned char x);
 //void RBIF_ISF(void);
