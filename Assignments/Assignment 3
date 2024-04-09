@@ -1,1 +1,297 @@
+//---------------------
+// Title: ASSIGNMENT 7
+//---------------------
+//Program Details:
+// 
+//-------	
+// Purpose: 
+//
+// File Dependencies / Libraries: None 
+// Compiler: ASM 2.4
+// Author: JACOB BALTIERREZ
+// Outputs: PORTD1, PORTD2
+// Inputs: enterref, entermeas
+// Date: APRIL 7, 2024
+// Versions:
+//       V1.0: 4/7/2024 - First Version
+//	
+//
+//---------------------
+// PIC18F46K42 Configuration Bit Settings
 
+// 'C' source line config statements
+
+#include <xc.h> // must have this
+//#include "../../../../../Program Files/Microchip/xc8/v2.40/pic/include/proc/pic18f46k42.h"
+#include "/Applications/microchip/xc8/v2.46/pic/include/proc/pic18f47k42.h"
+//#include "C:\Program Files\Microchip\xc8\v2.40\pic\include\proc\pic18f46k42"
+#include <stdio.h>
+#include <stdlib.h>
+
+int X_Int_Reg;
+int Y_Int_Reg;
+int number;
+char operator;
+
+void initialize (void){
+    PORTB = 0x00;
+    LATB = 0xF0;
+    ANSELB = 0x0F;
+    TRISB = 0x0F;
+    
+    PORTD = 0x00;
+    LATD = 0x00;
+    ANSELD = 0x00;
+    TRISD = 0x00;
+}
+
+int keyboard (int number){
+    while(1){
+        while(PORTBbits.RB0==1){
+            _delay(100);
+            if(PORTBbits.RB4==1)
+                number = 1;
+            else if(PORTBbits.RB5==1)
+                number = 2;
+            else if(PORTBbits.RB6==1)
+                number = 3;
+            else if(PORTBbits.RB7==1)
+                operator = '+';
+        }
+        while(PORTBbits.RB1==1){
+            _delay(100);
+            if(PORTBbits.RB4==1)
+                number = 4;
+            else if(PORTBbits.RB5==1)
+                number = 5;
+            else if(PORTBbits.RB6==1)
+                number = 6;
+            else if(PORTBbits.RB7==1)
+                operator = '-';
+        }
+        while(PORTBbits.RB2==1){
+            _delay(100);
+            if(PORTBbits.RB4==1)
+                number = 7;
+            else if(PORTBbits.RB5==1)
+                number = 8;
+            else if(PORTBbits.RB6==1)
+                number = 9;
+            else if(PORTBbits.RB7==1)
+                operator = '*';
+        }
+        while(PORTBbits.RB3==1){
+            if(PORTBbits.RB4==1)
+                operator = 'n';
+            else if(PORTBbits.RB5==1)
+                number = 0;
+            else if(PORTBbits.RB6==1)
+                operator = 'X';
+            else if(PORTBbits.RB7==1)
+                operator = '/';
+        }
+    }
+}
+int main (signed int num){
+    initialize();
+    int number[2], X_Input_Reg, Y_Input_Reg, num;
+    char operator;
+    X_Input_Reg = atoi(keyboard(number)); 
+    operator = getchar("%1c",keyboard(operator));
+    Y_Int_Reg = atoi(keyboard(number));
+}
+//void SerTX(unsigned char x);
+//void RBIF_ISF(void);
+//void MSDelay(unsigned int millisecs);
+//unsigned char keypad[4][4] = {  '1','2','3','A',
+//                                '4','5','6','B',
+//                                '8','9','A','C',
+//                                '*','0','#','D'};
+//
+//#pragma code My_HiPrio_Int =0x0008 //high-priority interrupt
+//void My_HiPrio_Int (void)
+//{ 
+//    _asm
+//            GOTO chk_isr
+//            _endasm
+//}
+//#pragma code
+//
+//#pragma interupt chk_isr        //which ISR
+//void chk_isr (void)
+//{
+//    if(PORTBbits.RBIF==1)      //RBIF caused interrupt?
+//        RBIF_ISR();
+//}
+//#pragma code
+//
+//void main()
+//{
+//    TRISD=0;                    //make PORTD output port
+//    INTCON2bits.RBPU=0;         //enable PORTB pull-up resistors
+//    TRISB=0XF0;                 // PORTB LOW AS OUTPUT AND HIGH AS INPUT
+//    PORTB=0xF0;                 //clear PORTB low
+//    while(PORTB!=0xF0);         //wait until key not pressed
+//    TXSTA=0x20;                 //choose low baud rate, 8-bit
+//    SPBRG=15;                   //9600 baud rate, XTAL= 10MHz
+//    TXSTAbits.TXEN=1            //enable transmit
+//            RCSTAbits.SPEN=1    //enable serial port
+//      INTCONbits.RBIE=1;        //enable PORTB interrupt on change
+//    INTCONbits.GIE=1;           //enable interrupts globally
+//    while(1);                   //wait until key press
+//}
+//void RBIF_ISR(void)             //finds the key pressed
+//{
+//    unsigned char temp,COL=0,ROW=4;
+//    MSDelay(15);
+//    temp = PORTB;               //get column
+//    temp ^= 0xF0;               //invert high nibble
+//    if(!temp) return;           //if false alarm return
+//    while(temp<<=1) COL++;      //find the column
+//    PORTB = 0xFE;               //ground row 0
+//    if(PORTB != 0xFE)           //Did high nibble change?
+//        ROW = 0;                //yes then row 0
+//    else{                       //try next row
+//        PORTB= 0xFD;            //ground row 1
+//        if(PORTB != 0xFD)       //Did high nibble change?
+//            ROW = 1;            //yes then row 1
+//        else{                   //try next row
+//            PORTB = 0xFB;       //ground row 2
+//            if (PORTB != 0xFB)  //Did high nibble change?
+//                ROW =2;         //yes then row 2
+//            else{               //try last row
+//                PORTB = 0xF7;   //ground row 3
+//                if(PORTB != 0xF7) //Did nibble change?
+//                    ROW= 3;     //yes then row 3
+//            }
+//        }
+//    }
+//    if(ROW<4)                   //Did we find a valid row?
+//        SerTX(keypad[ROW][COL]);    //then send character
+//    while(PORTB !=0xF0) PORTB =0xF0;    //wait for release
+//    INTCONbits.RBIF=0;          //Reset flag
+//}
+//void SerTX(unsigned char x)     // sends character
+//{
+//    while(PIR1bits.TXIF != 1);  //wait until ready
+//    TXREG=x;                    //send character out serial port
+//}
+//void MSDelay(unsigned int milisecs)
+//{
+//    unsigned int i, j;
+//    for(i=0; i<milisecs; i++)
+//        for(j=0; j<135; j++);
+//}
+//
+//#pragma code
+////no idea where to start so I am just writing the actions for each button
+//
+//void Stuff(signed int keypad)
+//{
+//    if(keypad = [1][1])
+//        PORTD = 0x01;           //PORTD is 1
+//    else if(keypad = [1][2])
+//        PORTD = 0x02;           //PORTD is 2
+//    else if(keypad = [1][3])
+//        PORTD = 0x03;           //PORTD is 3
+//    else if(keypad = [1][4])
+//        PORTD = ADDY(int x_value,int y_value);  //PORTD is addition
+//    else if(keypad = [2][1])
+//        PORTD = 0x04;           //PORTD is 4
+//    else if(keypad = [2][2])
+//        PORTD = 0x05;           //PORTD is 5
+//    else if(keypad = [2][3])
+//        PORTD = 0x06;           //PORTD is 6
+//    else if(keypad = [2][4])
+//        PORTD = SUBY(int x_value,int y_value);     //PORTD is subtraction
+//    else if(keypad = [3][1])
+//        PORTD = 0x07;           //PORTD is 7
+//    else if(keypad = [3][2])
+//        PORTD = 0x08;           //PORTD is 8
+//    else if(keypad = [3][3])
+//        PORTD = 0x09;           //PORTD is 9
+//    else if(keypad = [3][4])
+//        PORTD = MULY(int x_value,int y_value); //PORTD multiplication
+//    else if(keypad = [4][1])
+//        PORTD = Negative(PORTB);       //number is negative
+//    else if(keypad = [4][2])
+//        PORTD = 0;              //PORTD is zero
+//    else if(keypad = [4][3])
+//        PORTB = 0x00;          //clear PORTB
+//        PORTD = 0x00;             //clear PORTD
+//    else if(keypad = [4][4])
+//            PORTD = DIVY(int x_value,int y_value);        //PORTD is division
+//}
+//int signed ADDY(unsigned int x_value, unsigned int y_value){
+//    PORTD = x_value + y_value;        // x + y = z
+//    return PORTD;
+//}
+//
+//int signed SUBY(unsigned int x_value, unsigned int y_value){
+//    PORTD = x_value - y_value;       //x - y = z
+//    return PORTD;
+//}
+//
+//int signed MULY(unsigned int x_value, unsigned int y_value){
+//    PORTD = x_value * y_value;      //x * y = z
+//    return PORTD;
+//}
+//
+//int signed DIVY(unsigned int x_value, unsigned int y_value){
+//    PORTD = x_value / y_value;      //x / y = z
+//    return PORTD;
+//}
+//int signed NEGY(unsigned int num){
+//    num = ~num + 1;                 //2's complement
+//    return PORTD;
+//}                
+////change input from decimal to hex
+//int signed num(unsigned int num){
+//    num = num / 16;                 //divide num by 16
+//    for (i=0 ; i >= 16;i++){
+//        num = num / 16;             //divide again by 16
+//        return 0;
+//    }
+//}
+//
+//int X_Input_Reg;
+//int Y_Input_Reg;
+//char operation;
+//signed int answer;
+//scanf("%2d", &X_Input_Reg);
+//scanf("%c", &operation);
+//scanf("%2d", &Y_Input_Reg);
+//answer = PORTD;
+//
+//switch (operation) {
+//    case '+':
+//        scanf("%d", &Y_Int_Reg);
+//        answer = X_Int_Reg + Y_Int_Reg;
+//        break;
+//    case '-':
+//        scanf("%d %d", &Y_Int_Reg);
+//        answer = X_Int_Reg - Y_Int_Reg;
+//        break;
+//    case '*':
+//        scanf("%d %d", &Y_Int_Reg);
+//        answer = X_Int_Reg * Y_Int_Reg;
+//        break;
+//    case '/':
+//        scanf("%d %d", &Y_Int_Reg);
+//        answer = X_Int_Reg / Y_Int_Reg;
+//        break;
+//    default:
+//        PORTD = 0b00000000;
+//}
+//
+//signed int newhex(signed int newhex){
+//    int quotient;
+//    int dividend;
+//    int remainder;
+//    int divisor;
+//    
+//    quotient = dividend / divisor;
+//    remainder = dividend % divisor;
+//    return 0;
+//    
+//}
