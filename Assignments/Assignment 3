@@ -15,6 +15,8 @@
 // Date: APRIL 7, 2024
 // Versions:
 //       V1.0: 4/7/2024 - First Version
+//      V2.0: 4/14/2024 - Final Version: working version
+//      added delays between inputs in main, made minor changes for debouncing
 //	
 //
 //---------------------
@@ -30,13 +32,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "Cheader.h"
 
 #define _XTAL_FREQ 4000000                 // Fosc  frequency for _delay()  library
 #define FCY    _XTAL_FREQ/4
 
 int number;
-int num;
-
 void initialize (void){
     PORTB = 0x00;
     LATB = 0x00;
@@ -49,92 +50,96 @@ void initialize (void){
     TRISD = 0x00;
 }
 
-int keyboard (int number)
+int keyboard ()
 {
-        PORTBbits.RB0 = 1;
-            if(PORTBbits.RB4==1){
-                // __delay_ms(20);
-                number = 1;
-            }
-            if(PORTBbits.RB5==1){
-                // __delay_ms(20);
-                number = 4;
-            }
-            if(PORTBbits.RB6==1){
-                // __delay_ms(20);
-                number  =7;
-            }
-            if(PORTBbits.RB7==1){
-                // __delay_ms(20);
-                number = 20; //* not used
-            }
-            PORTBbits.RB0=0;
         
-        PORTBbits.RB1 = 1;
-            if(PORTBbits.RB4==1){
-                 //__delay_ms(20);
-                number = 2;
-            }
-            if(PORTBbits.RB5==1){
-                 //__delay_ms(20);
-                number = 5;
-            }
-            if(PORTBbits.RB6==1){
-                // __delay_ms(20);
-                number = 8;
-            }
-            if(PORTBbits.RB7==1){
-                // __delay_ms(20);
-                number = 0;
-            }
-            PORTBbits.RB1=0;
-        
-        PORTBbits.RB2=1;
-            if(PORTBbits.RB4==1){
-                // __delay_ms(20);
-                number = 3;
-            }
-            if(PORTBbits.RB5==1){
-                // __delay_ms(20);
-                number = 6;
-            }
-            if(PORTBbits.RB6==1){
-                 //__delay_ms(20);
-                number = 9;
-            }
-            if(PORTBbits.RB7==1){
-                // __delay_ms(20);
-                number = 15; //equal '#'
-            }
-            PORTBbits.RB2=0;
-        
-        PORTBbits.RB3=1;
-        
-            if(PORTBbits.RB4==1){
-                // __delay_ms(20);
-                number = 10; //+
-            }
-            if(PORTBbits.RB5==1){
-                // __delay_ms(20);
-                number = 11; //-
-            }
-            if(PORTBbits.RB6==1){
-                // __delay_ms(20);
-                number = 12; //*
-            }
-            if(PORTBbits.RB7==1){
-                // __delay_ms(20);
-                number = 13;  // /
-            }
-            //PORTBbits.RB3=0;
-        
-            return number;
+   number = -1; 
+     PORTBbits.RB0 = 1;
+             if(PORTBbits.RB4==1){
+                 __delay_ms(200);
+                 number = 1;
+             }
+             if(PORTBbits.RB5==1){
+                 __delay_ms(200);
+                 number = 4;
+             }
+             if(PORTBbits.RB6==1){
+                 __delay_ms(200);
+                 number  =7;
+             }
+             if(PORTBbits.RB7==1){
+                  __delay_ms(200);
+                 number = 20; //* not used
+             }
+             PORTBbits.RB0=0;
+
+         PORTBbits.RB1 = 1;
+             if(PORTBbits.RB4==1){
+                 __delay_ms(200);
+                 number = 2;
+             }
+             if(PORTBbits.RB5==1){
+                 __delay_ms(200);
+                 number = 5;
+             }
+             if(PORTBbits.RB6==1){
+                  __delay_ms(200);
+                 number = 8;
+             }
+             if(PORTBbits.RB7==1){
+                  __delay_ms(200);
+                 number = 0;
+             }
+             PORTBbits.RB1=0;
+
+         PORTBbits.RB2=1;
+             if(PORTBbits.RB4==1){
+                  __delay_ms(200);
+                 number = 3;
+             }
+             if(PORTBbits.RB5==1){
+                 __delay_ms(200);
+                 number = 6;
+             }
+             if(PORTBbits.RB6==1){
+                  __delay_ms(200);
+                 number = 9;
+             }
+             if(PORTBbits.RB7==1){
+                 __delay_ms(200);
+                 number = 15; //equal '#'
+             }
+             PORTBbits.RB2=0;
+
+         PORTBbits.RB3=1;
+
+             if(PORTBbits.RB4==1){
+                 __delay_ms(200);
+                 number = 10; //+
+             }
+             if(PORTBbits.RB5==1){
+                 __delay_ms(200);
+                 number = 11; //-
+             }
+             if(PORTBbits.RB6==1){
+                  __delay_ms(200);
+                 number = 12; //*
+             }
+             if(PORTBbits.RB7==1){
+                  __delay_ms(200);
+                 number = 13;  // /
+             }
+             PORTBbits.RB3=0;
+
+
+             return number;
+             
     }
 
 
 
-int action(int Operation_Reg,int X_Input_Reg,int Y_Input_Reg){
-    int result;
+char action(int X_Input_Reg,int Operation_Reg,int Y_Input_Reg){
+    signed char result;
     
     if(Operation_Reg == 10) //+ add
         result = X_Input_Reg + Y_Input_Reg;
@@ -148,58 +153,101 @@ int action(int Operation_Reg,int X_Input_Reg,int Y_Input_Reg){
         result = 0;
     return result;
 }
-int main (signed int result)
+char main (signed char result)
 {
-int X_Input_Reg = -1;
-int X1_Input_Reg = -1;
-int X2_Input_Reg = -1;
-int Y_Input_Reg = -1;
-int Y1_Input_Reg = -1;
-int Y2_Input_Reg = -1;
-int Operation_Reg = 0;
-int clear = 0;
+int X_Input_Reg;
+int X1_Input_Reg;
+int X2_Input_Reg;
+int Y_Input_Reg;
+int Y1_Input_Reg;
+int Y2_Input_Reg;
+int Operation_Reg;
 
     initialize();
-    while(X_Input_Reg < 0){
-        while(X1_Input_Reg < 0){
-            X1_Input_Reg = keyboard(number);
-        }
-        while(X2_Input_Reg < 0){
-            X2_Input_Reg = keyboard(number);
-        }
-        X1_Input_Reg = X1_Input_Reg * 10; //take 2 numbers
-        X_Input_Reg = X1_Input_Reg + X2_Input_Reg;
-        PORTDbits.RD0 = 1;
-    }
-    while(Operation_Reg < 10){
-        Operation_Reg = keyboard(number);
-    } //get operator from input
-    while(Y_Input_Reg < 0){
-        while(Y1_Input_Reg < 0){
-            Y1_Input_Reg = keyboard(number);
-        }
-        while(Y2_Input_Reg < 0){
-            Y2_Input_Reg = keyboard(number);
-        }
-        Y1_Input_Reg = Y1_Input_Reg * 10; //take 2 numbers
-        Y_Input_Reg = Y1_Input_Reg + Y2_Input_Reg;        
-        PORTDbits.RD0 = 0;
-        PORTDbits.RD1 = 1;
-    }
-    result = action(Operation_Reg,X_Input_Reg,Y_Input_Reg);
-    while(Operation_Reg !=15){
-        Operation_Reg = keyboard(number);
-    }
-    
-    PORTD = result; //output result
-           //result = Display_Result_Reg;     //outputs to PORTD in binary
-    while(Operation_Reg != 20)
-    {
-        Operation_Reg = keyboard(number);
-    }
-    PORTD = clear; //clear
 
+    while(1){
+        X_Input_Reg = -1;
+        X1_Input_Reg = -1;
+        X2_Input_Reg = -1;
+        Y_Input_Reg = -1;
+        Y1_Input_Reg = -1;
+        Y2_Input_Reg = -1;
+        Operation_Reg = -1;
+        number = -1;
+        while(X_Input_Reg == -1){
+            
+            while(X1_Input_Reg == -1){
+                //X1_Input_Reg = keyboard(number);
+                keyboard();
+                X1_Input_Reg = number;
+                __delay_ms(100); 
+            }
+            //PORTDbits.RD4=0;
+            while(X2_Input_Reg == -1){
+                keyboard();
+                X2_Input_Reg = number;
+                __delay_ms(100);
+            }
+            
+            X_Input_Reg = (X1_Input_Reg * 10) + X2_Input_Reg;
+            PORTD = X_Input_Reg;
+            number = -1;
+        }
+        while(Operation_Reg <= 9){
+            keyboard();
+            Operation_Reg = number;
+            __delay_ms(100);
+        } //get operator from input
+        //number = -1;
+        while(Y_Input_Reg == -1){
+            while(Y1_Input_Reg == -1){
+                keyboard();
+                Y1_Input_Reg = number;
+                __delay_ms(100);
+            }
+            while(Y2_Input_Reg == -1){
+                keyboard();
+                Y2_Input_Reg = number;
+                __delay_ms(100);
+            }
+            Y1_Input_Reg = Y1_Input_Reg * 10; //take 2 numbers
+            Y_Input_Reg = Y1_Input_Reg + Y2_Input_Reg;        
+            PORTD = 0;
+            PORTD = Y_Input_Reg;
+        }
+        __delay_ms(200);
+        result = action(X_Input_Reg,Operation_Reg,Y_Input_Reg);
+        while(number !=15){
+            keyboard();
+            __delay_ms(100);
+        }
+        
+        PORTD = result; //output result
+               //result = Display_Result_Reg;     //outputs to PORTD in binary
+        __delay_ms(200);
+        while(Operation_Reg != 20)
+        {
+            keyboard();
+                Operation_Reg = number;
+                __delay_ms(100);
+        }
+        PORTD = 0x00; //clear
+  }
 }
+//  test if keypad works
+//    number = -1;
+//    if(number == -1){
+//        while(number == -1){
+//        keyboard();
+//        //PORTD = number;
+//    }
+//        PORTD = number;
+//    }
+//    while(number != 20){
+//        keyboard();
+//    }
+//    PORTD = 0x00;
+    
 //signed int dec2bin(signed int num){
 //    int binary[8];
 //    int Display_Result_Reg[8];
@@ -219,190 +267,64 @@ int clear = 0;
 //                                '8','9','A','C',
 //                                '*','0','#','D'};
 //
-//#pragma code My_HiPrio_Int =0x0008 //high-priority interrupt
-//void My_HiPrio_Int (void)
-//{ 
-//    _asm
-//            GOTO chk_isr
-//            _endasm
-//}
-//#pragma code
+// no delay for testing
+//        PORTBbits.RB0 = 1;
+//             if(PORTBbits.RB4==1){
+//                 number = 1;
+//             }
+//             if(PORTBbits.RB5==1){
+//                 number = 4;
+//             }
+//             if(PORTBbits.RB6==1){
+//                 number  =7;
+//             }
+//             if(PORTBbits.RB7==1){
+//                 number = 20; //* not used
+//             }
+//             PORTBbits.RB0=0;
 //
-//#pragma interupt chk_isr        //which ISR
-//void chk_isr (void)
-//{
-//    if(PORTBbits.RBIF==1)      //RBIF caused interrupt?
-//        RBIF_ISR();
-//}
-//#pragma code
+//         PORTBbits.RB1 = 1;
+//             if(PORTBbits.RB4==1){
+//                 number = 2;
+//             }
+//             if(PORTBbits.RB5==1){
+//                 number = 5;
+//             }
+//             if(PORTBbits.RB6==1){
+//                 number = 8;
+//             }
+//             if(PORTBbits.RB7==1){
+//                 number = 0;
+//             }
+//             PORTBbits.RB1=0;
 //
-//void main()
-//{
-//    TRISD=0;                    //make PORTD output port
-//    INTCON2bits.RBPU=0;         //enable PORTB pull-up resistors
-//    TRISB=0XF0;                 // PORTB LOW AS OUTPUT AND HIGH AS INPUT
-//    PORTB=0xF0;                 //clear PORTB low
-//    while(PORTB!=0xF0);         //wait until key not pressed
-//    TXSTA=0x20;                 //choose low baud rate, 8-bit
-//    SPBRG=15;                   //9600 baud rate, XTAL= 10MHz
-//    TXSTAbits.TXEN=1            //enable transmit
-//            RCSTAbits.SPEN=1    //enable serial port
-//      INTCONbits.RBIE=1;        //enable PORTB interrupt on change
-//    INTCONbits.GIE=1;           //enable interrupts globally
-//    while(1);                   //wait until key press
-//}
-//void RBIF_ISR(void)             //finds the key pressed
-//{
-//    unsigned char temp,COL=0,ROW=4;
-//    MSDelay(15);
-//    temp = PORTB;               //get column
-//    temp ^= 0xF0;               //invert high nibble
-//    if(!temp) return;           //if false alarm return
-//    while(temp<<=1) COL++;      //find the column
-//    PORTB = 0xFE;               //ground row 0
-//    if(PORTB != 0xFE)           //Did high nibble change?
-//        ROW = 0;                //yes then row 0
-//    else{                       //try next row
-//        PORTB= 0xFD;            //ground row 1
-//        if(PORTB != 0xFD)       //Did high nibble change?
-//            ROW = 1;            //yes then row 1
-//        else{                   //try next row
-//            PORTB = 0xFB;       //ground row 2
-//            if (PORTB != 0xFB)  //Did high nibble change?
-//                ROW =2;         //yes then row 2
-//            else{               //try last row
-//                PORTB = 0xF7;   //ground row 3
-//                if(PORTB != 0xF7) //Did nibble change?
-//                    ROW= 3;     //yes then row 3
-//            }
-//        }
-//    }
-//    if(ROW<4)                   //Did we find a valid row?
-//        SerTX(keypad[ROW][COL]);    //then send character
-//    while(PORTB !=0xF0) PORTB =0xF0;    //wait for release
-//    INTCONbits.RBIF=0;          //Reset flag
-//}
-//void SerTX(unsigned char x)     // sends character
-//{
-//    while(PIR1bits.TXIF != 1);  //wait until ready
-//    TXREG=x;                    //send character out serial port
-//}
-//void MSDelay(unsigned int milisecs)
-//{
-//    unsigned int i, j;
-//    for(i=0; i<milisecs; i++)
-//        for(j=0; j<135; j++);
-//}
+//         PORTBbits.RB2=1;
+//             if(PORTBbits.RB4==1){
+//                 number = 3;
+//             }
+//             if(PORTBbits.RB5==1){
+//                 number = 6;
+//             }
+//             if(PORTBbits.RB6==1){
+//                 number = 9;
+//             }
+//             if(PORTBbits.RB7==1){
+//                 number = 15; //equal '#'
+//             }
+//             PORTBbits.RB2=0;
 //
-//#pragma code
-////no idea where to start so I am just writing the actions for each button
+//         PORTBbits.RB3=1;
 //
-//void Stuff(signed int keypad)
-//{
-//    if(keypad = [1][1])
-//        PORTD = 0x01;           //PORTD is 1
-//    else if(keypad = [1][2])
-//        PORTD = 0x02;           //PORTD is 2
-//    else if(keypad = [1][3])
-//        PORTD = 0x03;           //PORTD is 3
-//    else if(keypad = [1][4])
-//        PORTD = ADDY(int x_value,int y_value);  //PORTD is addition
-//    else if(keypad = [2][1])
-//        PORTD = 0x04;           //PORTD is 4
-//    else if(keypad = [2][2])
-//        PORTD = 0x05;           //PORTD is 5
-//    else if(keypad = [2][3])
-//        PORTD = 0x06;           //PORTD is 6
-//    else if(keypad = [2][4])
-//        PORTD = SUBY(int x_value,int y_value);     //PORTD is subtraction
-//    else if(keypad = [3][1])
-//        PORTD = 0x07;           //PORTD is 7
-//    else if(keypad = [3][2])
-//        PORTD = 0x08;           //PORTD is 8
-//    else if(keypad = [3][3])
-//        PORTD = 0x09;           //PORTD is 9
-//    else if(keypad = [3][4])
-//        PORTD = MULY(int x_value,int y_value); //PORTD multiplication
-//    else if(keypad = [4][1])
-//        PORTD = Negative(PORTB);       //number is negative
-//    else if(keypad = [4][2])
-//        PORTD = 0;              //PORTD is zero
-//    else if(keypad = [4][3])
-//        PORTB = 0x00;          //clear PORTB
-//        PORTD = 0x00;             //clear PORTD
-//    else if(keypad = [4][4])
-//            PORTD = DIVY(int x_value,int y_value);        //PORTD is division
-//}
-//int signed ADDY(unsigned int x_value, unsigned int y_value){
-//    PORTD = x_value + y_value;        // x + y = z
-//    return PORTD;
-//}
-//
-//int signed SUBY(unsigned int x_value, unsigned int y_value){
-//    PORTD = x_value - y_value;       //x - y = z
-//    return PORTD;
-//}
-//
-//int signed MULY(unsigned int x_value, unsigned int y_value){
-//    PORTD = x_value * y_value;      //x * y = z
-//    return PORTD;
-//}
-//
-//int signed DIVY(unsigned int x_value, unsigned int y_value){
-//    PORTD = x_value / y_value;      //x / y = z
-//    return PORTD;
-//}
-//int signed NEGY(unsigned int num){
-//    num = ~num + 1;                 //2's complement
-//    return PORTD;
-//}                
-////change input from decimal to hex
-//int signed num(unsigned int num){
-//    num = num / 16;                 //divide num by 16
-//    for (i=0 ; i >= 16;i++){
-//        num = num / 16;             //divide again by 16
-//        return 0;
-//    }
-//}
-//
-//int X_Input_Reg;
-//int Y_Input_Reg;
-//char operation;
-//signed int answer;
-//scanf("%2d", &X_Input_Reg);
-//scanf("%c", &operation);
-//scanf("%2d", &Y_Input_Reg);
-//answer = PORTD;
-//
-//switch (operation) {
-//    case '+':
-//        scanf("%d", &Y_Int_Reg);
-//        answer = X_Int_Reg + Y_Int_Reg;
-//        break;
-//    case '-':
-//        scanf("%d %d", &Y_Int_Reg);
-//        answer = X_Int_Reg - Y_Int_Reg;
-//        break;
-//    case '*':
-//        scanf("%d %d", &Y_Int_Reg);
-//        answer = X_Int_Reg * Y_Int_Reg;
-//        break;
-//    case '/':
-//        scanf("%d %d", &Y_Int_Reg);
-//        answer = X_Int_Reg / Y_Int_Reg;
-//        break;
-//    default:
-//        PORTD = 0b00000000;
-//}
-//
-//signed int newhex(signed int newhex){
-//    int quotient;
-//    int dividend;
-//    int remainder;
-//    int divisor;
-//    
-//    quotient = dividend / divisor;
-//    remainder = dividend % divisor;
-//    return 0;
-//    
-//}
+//             if(PORTBbits.RB4==1){
+//                 number = 10; //+
+//             }
+//             if(PORTBbits.RB5==1){
+//                 number = 11; //-
+//             }
+//             if(PORTBbits.RB6==1){
+//                 number = 12; //*
+//             }
+//             if(PORTBbits.RB7==1){
+//                 number = 13;  // /
+//             }
+//             PORTBbits.RB3=0;
